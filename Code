@@ -1,0 +1,253 @@
+import java.util.*;
+import java.io.*;
+
+public class EnrollmentSystem2 {
+
+    static Scanner sc = new Scanner(System.in);
+
+    static String[][] students = new String[100][5];
+    static int count = 0;
+
+    // ✅ USERS (encrypt() must exist before use or be static)
+    static String[][] users = {
+        {"admin", encrypt("admin123"), "1"}, // Admin
+        {"staff", encrypt("staff123"), "2"},  // Staff
+        {"student", encrypt("student123"), "3"} //student
+    };
+
+    public static void main(String[] args) {
+        loadFiles();
+
+        int role = login();
+
+        if (role != 0) {
+            handleCRUD(role);
+        }
+
+        saveFiles();
+    }
+
+    // 🔐 LOGIN WITH RETRY
+    static int login() {
+        int attempts = 3;
+
+        while (attempts > 0) {
+            System.out.print("Username: ");
+            String user = sc.nextLine();
+
+            System.out.print("Password: ");
+            String pass = encrypt(sc.nextLine());
+
+            for (int i = 0; i < users.length; i++) {
+                if (users[i][0].equals(user) && users[i][1].equals(pass)) {
+                    System.out.println("Login successful!");
+                    return Integer.parseInt(users[i][2]);
+                }
+            }
+
+            attempts--;
+            System.out.println("Invalid login! Attempts left: " + attempts);
+        }
+
+        System.out.println("Too many failed attempts.");
+        return 0;
+    }
+
+    // 📋 MENU
+    static void handleCRUD(int role) {
+        int choice = 0;
+
+        do {
+            System.out.println("\n=== ENROLLMENT SYSTEM ===");
+            System.out.println("1. Add Student");
+            System.out.println("2. View Students");
+            System.out.println("3. Update Student");
+            System.out.println("4. Delete Student");
+            System.out.println("5. Exit");
+
+            try {
+                System.out.print("Choice: ");
+                choice = Integer.parseInt(sc.nextLine());
+            } catch (Exception e) {
+                System.out.println("Invalid input! Enter a number.");
+                continue;
+            }
+
+            if (role == 2 && choice != 2 && choice != 5) {
+                System.out.println("View only access!");
+                continue;
+            }
+
+            switch (choice) {
+                case 1: addStudent(); break;
+                case 2: viewStudents(); break;
+                case 3: updateStudent(); break;
+                case 4: deleteStudent(); break;
+                case 5: System.out.println("Exiting..."); break;
+                default: System.out.println("Invalid choice!");
+            }
+
+        } while (choice != 5);
+    }
+
+    // ➕ ADD STUDENT
+    static void addStudent() {
+        try {
+            String id;
+
+            do {
+                System.out.print("Enter ID (HS-0000): ");
+                id = sc.nextLine();
+            } while (!validateInput(id, "^HS-\\d{4}$"));
+
+            System.out.print("Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Grade: ");
+            String grade = sc.nextLine();
+
+            System.out.print("Section: ");
+            String section = sc.nextLine();
+
+            String contact;
+            do {
+                System.out.print("Contact (09XXXXXXXXX): ");
+                contact = sc.nextLine();
+            } while (!validateInput(contact, "^09\\d{9}$"));
+
+            students[count][0] = id;
+            students[count][1] = name;
+            students[count][2] = grade;
+            students[count][3] = section;
+            students[count][4] = contact;
+
+            count++;
+
+            System.out.println("Student added!");
+
+        } catch (Exception e) {
+            System.out.println("Error adding student.");
+        }
+    }
+
+    // 📖 VIEW
+    static void viewStudents() {
+        if (count == 0) {
+            System.out.println("No records.");
+            return;
+        }
+
+        for (int i = 0; i < count; i++) {
+            System.out.println(Arrays.toString(students[i]));
+        }
+    }
+
+    // ✏️ UPDATE
+    static void updateStudent() {
+        try {
+            System.out.print("Enter ID to update: ");
+            String id = sc.nextLine();
+
+            for (int i = 0; i < count; i++) {
+                if (students[i][0].equals(id)) {
+                    System.out.print("New Name: ");
+                    students[i][1] = sc.nextLine();
+                    System.out.println("Updated!");
+                    return;
+                }
+            }
+
+            System.out.println("Not found!");
+
+        } catch (Exception e) {
+            System.out.println("Error updating student.");
+        }
+    }
+
+    // ❌ DELETE
+    static void deleteStudent() {
+        try {
+            System.out.print("Enter ID to delete: ");
+            String id = sc.nextLine();
+
+            for (int i = 0; i < count; i++) {
+                if (students[i][0].equals(id)) {
+                    for (int j = i; j < count - 1; j++) {
+                        students[j] = students[j + 1];
+                    }
+                    count--;
+                    System.out.println("Deleted!");
+                    return;
+                }
+            }
+
+            System.out.println("Not found!");
+
+        } catch (Exception e) {
+            System.out.println("Error deleting student.");
+        }
+    }
+
+    // 🔍 REGEX VALIDATION
+    static boolean validateInput(String input, String regex) {
+        if (input == null || input.trim().isEmpty()) {
+            System.out.println("Input cannot be empty!");
+            return false;
+        }
+
+        if (!input.matches(regex)) {
+            System.out.println("Invalid format!");
+            return false;
+        }
+
+        return true;
+    }
+
+    // 🔐 CAESAR CIPHER
+    static String encrypt(String text) {
+        String result = "";
+        int key = 3;
+
+        for (char c : text.toCharArray()) {
+            result += (char)(c + key);
+        }
+
+        return result;
+    }
+
+    // 📂 SAVE FILE
+    static void saveFiles() {
+        try {
+            PrintWriter pw = new PrintWriter("data.txt");
+
+            for (int i = 0; i < count; i++) {
+                pw.println(String.join(",", students[i]));
+            }
+
+            pw.close();
+
+        } catch (Exception e) {
+            System.out.println("Error saving file!");
+        }
+    }
+
+    // 📂 LOAD FILE
+    static void loadFiles() {
+        try {
+            File file = new File("data.txt");
+            if (!file.exists()) return;
+
+            Scanner fileReader = new Scanner(file);
+
+            while (fileReader.hasNextLine()) {
+                String[] data = fileReader.nextLine().split(",");
+                students[count++] = data;
+            }
+
+            fileReader.close();
+
+        } catch (Exception e) {
+            System.out.println("Error loading file!");
+        }
+    }
+}
