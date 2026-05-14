@@ -1,21 +1,20 @@
 import java.util.*;
 import java.io.*;
 
-public class EnrollmentSystem2 {
+public class EnrollmentSystem {
 
     static Scanner sc = new Scanner(System.in);
 
     static String[][] students = new String[100][5];
     static int count = 0;
 
-    // ✅ USERS (encrypt() must exist before use or be static)
-    static String[][] users = {
-        {"admin", encrypt("admin123"), "1"}, // Admin
-        {"staff", encrypt("staff123"), "2"},  // Staff
-        {"student", encrypt("student123"), "3"} //student
-    };
+    //Users connecting to the User.txt
+    static String[][] users = new String[100][3];
+static int userCount = 0;
 
     public static void main(String[] args) {
+        
+        loadUsers();
         loadFiles();
 
         int role = login();
@@ -27,7 +26,37 @@ public class EnrollmentSystem2 {
         saveFiles();
     }
 
-    // 🔐 LOGIN WITH RETRY
+    //load files for Userstxt to Use the roles
+    static void loadUsers() {
+    try {
+        File file = new File("users.txt");
+
+        if (!file.exists()) {
+            System.out.println("users.txt not found!");
+            return;
+        }
+
+        Scanner fileReader = new Scanner(file);
+
+        while (fileReader.hasNextLine()) {
+            String line = fileReader.nextLine();
+            String[] data = line.split(",");
+
+            users[userCount][0] = data[0];
+            users[userCount][1] = data[1];
+            users[userCount][2] = data[2];
+
+            userCount++;
+        }
+
+        fileReader.close();
+
+    } catch (Exception e) {
+        System.out.println("Error loading users!");
+    }
+} 
+
+    //LOGIN WITH RETRY
     static int login() {
         int attempts = 3;
 
@@ -37,8 +66,7 @@ public class EnrollmentSystem2 {
 
             System.out.print("Password: ");
             String pass = encrypt(sc.nextLine());
-
-            for (int i = 0; i < users.length; i++) {
+            for (int i = 0; i < userCount; i++) {
                 if (users[i][0].equals(user) && users[i][1].equals(pass)) {
                     System.out.println("Login successful!");
                     return Integer.parseInt(users[i][2]);
@@ -53,7 +81,7 @@ public class EnrollmentSystem2 {
         return 0;
     }
 
-    // 📋 MENU
+    // MENU
     static void handleCRUD(int role) {
         int choice = 0;
 
@@ -90,7 +118,7 @@ public class EnrollmentSystem2 {
         } while (choice != 5);
     }
 
-    // ➕ ADD STUDENT
+    // ADD STUDENT
     static void addStudent() {
         try {
             String id;
@@ -130,7 +158,7 @@ public class EnrollmentSystem2 {
         }
     }
 
-    // 📖 VIEW
+    // VIEW
     static void viewStudents() {
         if (count == 0) {
             System.out.println("No records.");
@@ -142,7 +170,7 @@ public class EnrollmentSystem2 {
         }
     }
 
-    // ✏️ UPDATE
+    // UPDATE
     static void updateStudent() {
         try {
             System.out.print("Enter ID to update: ");
@@ -164,7 +192,7 @@ public class EnrollmentSystem2 {
         }
     }
 
-    // ❌ DELETE
+    // DELETE
     static void deleteStudent() {
         try {
             System.out.print("Enter ID to delete: ");
@@ -188,7 +216,7 @@ public class EnrollmentSystem2 {
         }
     }
 
-    // 🔍 REGEX VALIDATION
+    // REGEX VALIDATION
     static boolean validateInput(String input, String regex) {
         if (input == null || input.trim().isEmpty()) {
             System.out.println("Input cannot be empty!");
@@ -203,7 +231,7 @@ public class EnrollmentSystem2 {
         return true;
     }
 
-    // 🔐 CAESAR CIPHER
+    // CAESAR CIPHER
     static String encrypt(String text) {
         String result = "";
         int key = 3;
@@ -215,7 +243,7 @@ public class EnrollmentSystem2 {
         return result;
     }
 
-    // 📂 SAVE FILE
+    // SAVE FILE
     static void saveFiles() {
         try {
             PrintWriter pw = new PrintWriter("data.txt");
@@ -231,7 +259,7 @@ public class EnrollmentSystem2 {
         }
     }
 
-    // 📂 LOAD FILE
+    // LOAD FILE
     static void loadFiles() {
         try {
             File file = new File("data.txt");
