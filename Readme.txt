@@ -1,4 +1,5 @@
-How to use the code # High-School-Enrollment-System
+How to use the code 
+# High-School-Enrollment-System
 System Description
 
 The Enrollment System is a Java-based console application designed to manage student enrollment records. The system allows authorized users to log in and perform operations such as adding, viewing, updating, and deleting student information.
